@@ -44,13 +44,36 @@ public class Repository<T> : IRepository<T> where T : class
     {
         //IQueryable<T> query = dbSet;
         //return await query.ToListAsync();
-        var cacheData = await _cacheService.GetData<IEnumerable<T>>(typeof(T).Name);
+
+        var cacheData = await _cacheService.GetDataAsync<IEnumerable<T>>(typeof(T).Name);
+        if (cacheData != null)
+            return cacheData;
+        else
+        {
+            var data = await dbSet.ToListAsync();
+            await _cacheService.SetDataAsync<IEnumerable<T>>(typeof(T).Name, data, DateTimeOffset.Now.AddSeconds(50));
+
+            return data;
+        }
     }
 
     public async Task<T> GetDetailsAsync(int id)
     {
-        var entity = await dbSet.FindAsync(id);
-        return entity;
+        //var entity = await dbSet.FindAsync(id);
+        //return entity;
+
+        var cacheKey = $"{typeof(T).Name}:{id}";
+        var cacheData = await _cacheService.GetDataAsync<T>(cacheKey);
+
+        if (cacheData != null)
+            return cacheData;
+        else
+        {
+            var data = await dbSet.FindAsync(id);
+            await _cacheService.SetDataAsync<T>(cacheKey, data, DateTimeOffset.Now.AddSeconds(50));
+
+            return data;
+        }
     }
 
     public void Remove(T entity)

@@ -3,6 +3,8 @@ using BiteBliss.DataAcces.Data;
 using BiteBliss.DataAcces.Repo.Services;
 using BiteBliss.DataAccess.Repo;
 using BiteBliss.DataAccess.Repo.IRepo;
+using BiteBliss.DataAccess.Repo.IRepo.Services;
+using BiteBliss.DataAccess.Repo.Services;
 using BiteBliss.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -56,6 +58,7 @@ builder.Services.AddRazorPages().AddRazorRuntimeCompilation();
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<BlobService>();
+builder.Services.AddSingleton<ICacheService, CacheService>();
 
 builder.Services.AddAuthentication(options =>
 {

@@ -1,6 +1,7 @@
 ﻿using BiteBliss.DataAcces.Data;
 using BiteBliss.DataAcces.Repo.IRepo;
 using BiteBliss.DataAcces.Utils;
+using BiteBliss.DataAccess.Repo.IRepo.Services;
 using BiteBliss.Models.DataTables;
 using BiteBliss.Models.DataTables.Dto;
 using Microsoft.EntityFrameworkCore;
@@ -15,15 +16,23 @@ namespace BiteBliss.DataAcces.Repo;
 public class OrderRepo : IOrderRepo
 {
     private readonly AppDbContext _db;
-    public OrderRepo(AppDbContext db)
+    private readonly ICacheService _cacheService;
+    public OrderRepo(AppDbContext db, ICacheService cacheService)
     {
         _db = db;
+        _cacheService = cacheService;
     }
 
     public async Task<OrderHeader> GetOrderAsync(string? userId)
     {
         try
         {
+            string cacheKey = $"Order_{userId ?? "AllUsers"}";
+            var cacheData = await _cacheService.GetDataAsync<OrderHeader>(cacheKey);
+
+            if (cacheData != null)
+                return cacheData;
+
             var orderHeaders = _db.OrderHeaders
                             .Include(u => u.OrderDetails)
                             .ThenInclude(u => u.MenuItem)
@@ -32,11 +41,36 @@ public class OrderRepo : IOrderRepo
             if (!string.IsNullOrEmpty(userId))
             {
                 var user = orderHeaders.Where(u => u.ApplicationUserId == userId);
+                var userOrder = await user.FirstOrDefaultAsync();
 
-                return await user.FirstOrDefaultAsync();
+                if (userOrder != null)
+                {
+                    await _cacheService.SetDataAsync(cacheKey, userOrder, DateTimeOffset.Now.AddSeconds(50));
+                    return userOrder;
+                }
+                //else
+                //{
+                //    var allUsers = await orderHeaders.FirstOrDefaultAsync();
+
+                //    if(allUsers != null)
+                //    {
+                //        await _cacheService.SetDataAsync<OrderHeader>(cacheKey, allUsers, DateTimeOffset.Now.AddSeconds(30));
+                //        return allUsers;
+                //    }
+                //}
+                return userOrder;
             }
             else
-                return await orderHeaders.FirstOrDefaultAsync();
+            {
+                var allUsers = await orderHeaders.FirstOrDefaultAsync();
+
+                if (allUsers != null)
+                {
+                    await _cacheService.SetDataAsync<OrderHeader>(cacheKey, allUsers, DateTimeOffset.Now.AddSeconds(30));
+                    return allUsers;
+                }
+                return allUsers;
+            }
         }
         catch (Exception ex)
         {
@@ -49,21 +83,32 @@ public class OrderRepo : IOrderRepo
         try
         {
             if (id == 0)
-            {
                 throw new ArgumentException("Order Id is null or empty");
-            }
 
-            var orderHeaders = _db.OrderHeaders
-                            .Include(u => u.OrderDetails)
-                            .ThenInclude(u => u.MenuItem)
-                            .Where(u => u.OrderHeaderId == id);
+            string cacheKey = $"Order_{id}";
+            var cacheData = await _cacheService.GetDataAsync<OrderHeader>(cacheKey);
 
-            if (orderHeaders == null)
+            if (cacheData != null)
+                return cacheData;
+
+            else
             {
-                throw new ArgumentException("Order not found");
-            }
+                var orderHeaders = _db.OrderHeaders
+                                .Include(u => u.OrderDetails)
+                                .ThenInclude(u => u.MenuItem)
+                                .Where(u => u.OrderHeaderId == id);
 
-            return await orderHeaders.FirstOrDefaultAsync();
+                var order = await orderHeaders.FirstOrDefaultAsync();
+
+                if(order != null)
+                {
+                    await _cacheService.SetDataAsync(cacheKey, order, DateTimeOffset.Now.AddSeconds(30));
+                    return order;
+                }
+                else
+                    throw new ArgumentException("Order not found");
+              
+            }
         }
         catch (Exception ex)
         {
@@ -75,6 +120,7 @@ public class OrderRepo : IOrderRepo
     {
         try
         {
+
             OrderHeader newOrder = new()
             {
                 ApplicationUserId = orderHeaderDTO.ApplicationUserId,
@@ -125,7 +171,7 @@ public class OrderRepo : IOrderRepo
             if (orderFromDb == null)
                 throw new ArgumentException("Order not found");
 
-            if(!String.IsNullOrEmpty(orderHeaderUpdateDTO.PickupName))
+            if (!String.IsNullOrEmpty(orderHeaderUpdateDTO.PickupName))
                 orderFromDb.PickupName = orderHeaderUpdateDTO.PickupName;
             if (!String.IsNullOrEmpty(orderHeaderUpdateDTO.PickupPhoneNumber))
                 orderFromDb.PickupPhoneNumber = orderHeaderUpdateDTO.PickupPhoneNumber;
@@ -133,7 +179,7 @@ public class OrderRepo : IOrderRepo
                 orderFromDb.PickupEmail = orderHeaderUpdateDTO.PickupEmail;
             if (!String.IsNullOrEmpty(orderHeaderUpdateDTO.Status))
                 orderFromDb.PaymentStatus = orderHeaderUpdateDTO.Status;
-            if(!String.IsNullOrEmpty(orderHeaderUpdateDTO.StripePaymentIntentId))
+            if (!String.IsNullOrEmpty(orderHeaderUpdateDTO.StripePaymentIntentId))
                 orderFromDb.StripePaymentIntentId = orderHeaderUpdateDTO.StripePaymentIntentId;
 
             _db.OrderHeaders.Update(orderFromDb);

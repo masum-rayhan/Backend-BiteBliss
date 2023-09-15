@@ -8,7 +8,7 @@ namespace BiteBliss.DataAccess.Repo.IRepo.Services;
 
 public interface ICacheService
 {
-    T GetDataAsync<T>(string key);
-    bool SetDataAsync<T>(string key, T data, DateTimeOffset expirationTime);
-    bool RemoveDataAsync(string key);
+    Task<T> GetDataAsync<T>(string key);
+    Task<bool> SetDataAsync<T>(string key, T data, DateTimeOffset expirationTime);
+    Task<bool> RemoveDataAsync(string key);
 }

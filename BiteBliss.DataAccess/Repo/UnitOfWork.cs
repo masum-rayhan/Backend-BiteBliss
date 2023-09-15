@@ -28,14 +28,18 @@ public class UnitOfWork : IUnitOfWork
     private readonly IConfiguration _config;
     private string secretKey;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly ICacheService _cacheService;
 
-    public UnitOfWork(AppDbContext db, BlobService blobService, RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, IConfiguration config)
+    public UnitOfWork(AppDbContext db, BlobService blobService,
+        RoleManager<IdentityRole> roleManager, UserManager<ApplicationUser> userManager, 
+        IConfiguration config, ICacheService cacheService)
     {
         _db = db;
         _blobService = blobService;
         _roleManager = roleManager;
         _userManager = userManager;
         _config = config;
+        _cacheService = cacheService;
     }
 
     public Task SaveAsync()
@@ -43,7 +47,7 @@ public class UnitOfWork : IUnitOfWork
         return _db.SaveChangesAsync();
     }
 
-    public IMenuItemRepo MenuItems => new MenuItemRepo(_db, _blobService);
+    public IMenuItemRepo MenuItems => new MenuItemRepo(_db, _blobService, _cacheService);
 
     public IBlobService BlobService => _blobService;
 

@@ -14,13 +14,11 @@ public class MenuItemController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
     private ApiResponse _response;
-    private readonly ICacheService _cacheService;
 
-    public MenuItemController(IUnitOfWork unitOfWork, ICacheService cacheService)
+    public MenuItemController(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
         _response = new ApiResponse();
-        _cacheService = cacheService;
     }
 
     [HttpGet]
