@@ -1,6 +1,7 @@
 ﻿using BiteBliss.DataAcces.Repo.IRepo;
 using BiteBliss.DataAcces.Repo.IRepo.Auth;
 using BiteBliss.DataAcces.Repo.IRepo.Services;
+using BiteBliss.DataAccess.Repo.IRepo.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,4 +20,5 @@ public interface IUnitOfWork
     IShoppingCartRepo ShoppingCart { get; }
     IOrderRepo Order { get; }
     IPaymentRepo Payments { get; }
+    ICacheService Cache { get; }
 }

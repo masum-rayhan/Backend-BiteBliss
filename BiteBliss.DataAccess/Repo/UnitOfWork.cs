@@ -7,6 +7,8 @@ using BiteBliss.DataAcces.Repo.IRepo.Auth;
 using BiteBliss.DataAcces.Repo.IRepo.Services;
 using BiteBliss.DataAcces.Repo.Services;
 using BiteBliss.DataAccess.Repo.IRepo;
+using BiteBliss.DataAccess.Repo.IRepo.Services;
+using BiteBliss.DataAccess.Repo.Services;
 using BiteBliss.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -52,4 +54,6 @@ public class UnitOfWork : IUnitOfWork
     public IOrderRepo Order => new OrderRepo(_db);
 
     public IPaymentRepo Payments => new PaymentRepo(_db, _config);
+
+    public ICacheService Cache => new CacheService();
 }
