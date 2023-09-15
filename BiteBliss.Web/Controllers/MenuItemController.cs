@@ -1,4 +1,5 @@
 ﻿using BiteBliss.DataAccess.Repo.IRepo;
+using BiteBliss.DataAccess.Repo.IRepo.Services;
 using BiteBliss.Models.DataTables.Dto;
 using BiteBliss.Models.Utils;
 using Microsoft.AspNetCore.Http;
@@ -13,11 +14,13 @@ public class MenuItemController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
     private ApiResponse _response;
+    private readonly ICacheService _cacheService;
 
-    public MenuItemController(IUnitOfWork unitOfWork)
+    public MenuItemController(IUnitOfWork unitOfWork, ICacheService cacheService)
     {
         _unitOfWork = unitOfWork;
         _response = new ApiResponse();
+        _cacheService = cacheService;
     }
 
     [HttpGet]

@@ -5,18 +5,22 @@ using BiteBliss.Models.DataTables;
 using BiteBliss.Models.DataTables.Dto;
 using BiteBliss.DataAcces.Repo.Services;
 using BiteBliss.DataAcces.Utils;
+using BiteBliss.DataAccess.Repo.IRepo.Services;
+using BiteBliss.DataAccess.Repo.Services;
+using BiteBliss.DataAcces.Repo.IRepo.Services;
 
 namespace BiteBliss.DataAcces.Repo;
 
 public class MenuItemRepo : Repository<MenuItem>, IMenuItemRepo
 {
     private readonly AppDbContext _db;
-    private readonly BlobService _blobService;
-    private readonly ICacheService cacheService;
-    public MenuItemRepo(AppDbContext db, BlobService blobService) : base(db)
+    private readonly IBlobService _blobService;
+    private readonly ICacheService _cacheService;
+    public MenuItemRepo(AppDbContext db, IBlobService blobService, ICacheService cacheService) : base(db)
     {
         _db = db;
         _blobService = blobService;
+        _cacheService = cacheService;
     }
 
     public async Task<MenuItem> CreateMenuItemAsync(MenuItemCreateDTO menuItemCreateDTO)

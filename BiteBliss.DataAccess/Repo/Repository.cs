@@ -1,5 +1,6 @@
 ﻿using BiteBliss.DataAcces.Data;
 using BiteBliss.DataAccess.Repo.IRepo;
+using BiteBliss.DataAccess.Repo.IRepo.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -14,9 +15,11 @@ public class Repository<T> : IRepository<T> where T : class
 {
     private readonly AppDbContext _db;
     internal DbSet<T> dbSet;
-    public Repository(AppDbContext db)
+    private readonly ICacheService _cacheService;
+    public Repository(AppDbContext db, ICacheService cacheService)
     {
         _db = db;
+        _cacheService = cacheService;
         this.dbSet = _db.Set<T>();
     }
     public async Task AddAsync(T entity)
@@ -39,8 +42,9 @@ public class Repository<T> : IRepository<T> where T : class
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
-        IQueryable<T> query = dbSet;
-        return await query.ToListAsync();
+        //IQueryable<T> query = dbSet;
+        //return await query.ToListAsync();
+        var cacheData = await _cacheService.GetData<IEnumerable<T>>(typeof(T).Name);
     }
 
     public async Task<T> GetDetailsAsync(int id)

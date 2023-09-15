@@ -18,27 +18,27 @@ public class CacheService : ICacheService
         _cacheDb = redis.GetDatabase();
     }
 
-    public T GetData<T>(string key)
+    public async Task<T> GetDataAsync<T>(string key)
     {
-        var value = _cacheDb.StringGet(key);
+        var value = await _cacheDb.StringGetAsync(key);
         if(!string.IsNullOrEmpty(value))
             return JsonSerializer.Deserialize<T>(value);
         return default;
     }
 
-    public object RemoveData(string key)
+    public async Task<bool> RemoveDataAsync(string key)
     {
-        var _exist = _cacheDb.KeyExists(key);
+        var _exist = await _cacheDb.KeyExistsAsync(key);
 
         if (_exist)
-            return _cacheDb.KeyDelete(key);
+            return await _cacheDb.KeyDeleteAsync(key);
 
         return false;
     }
 
-    public bool SetData<T>(string key, T data, DateTimeOffset expirationTime)
+    public async Task<bool> SetDataAsync<T>(string key, T data, DateTimeOffset expirationTime)
     {
         var expiryTime = expirationTime.DateTime.Subtract(DateTime.Now);
-        return _cacheDb.StringSet(key, JsonSerializer.Serialize(data), expiryTime);
+        return await _cacheDb.StringSetAsync(key, JsonSerializer.Serialize(data), expiryTime);
     }
 }
